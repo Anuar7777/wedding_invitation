@@ -1,0 +1,30 @@
+---
+description: Performance — static first, lazy-load client code, optimize assets
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Next.js Performance
+
+- This rule extends `core-typescript-quality.mdc` with performance‑focused guidance
+  for Next.js pages and components.
+
+- **Static first**: Keep invitation pages fully static (no `dynamic = 'force-dynamic'`, no `cookies()`/`headers()` in page components). Ensures fast initial load and CDN caching.
+- **Lazy-load client components**: Use `next/dynamic` with `ssr: false` for heavy or non-critical client UI (e.g. countdown, 2GIS map, music widget) so they do not block first paint.
+
+```tsx
+// BAD: heavy client component in main bundle
+import { CountdownTimer } from "@/components/CountdownTimer";
+export default function Page() { return <CountdownTimer />; }
+
+// GOOD: dynamic import, no SSR
+import dynamic from "next/dynamic";
+const CountdownTimer = dynamic(() => import("@/components/CountdownTimer"), { ssr: false });
+```
+
+- Use `next/image` for images; set `width`/`height` or `fill` and appropriate `sizes` for responsive layouts.
+- Do not import admin or auth code on invitation routes. Keep invitation layout and shared components minimal so client bundles stay small.
+
+- When introducing heavy new components, large media, or significantly changing layout,
+  the agent should call out potential performance impact and may recommend running
+  Lighthouse or Next.js performance analysis tools as a follow‑up check.

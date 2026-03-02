@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPERADMIN
+  ADMIN
+}
+
+enum GuestSource {
+  HUSBAND
+  WIFE
+}
+
+enum Attendance {
+  COMING
+  WITH_PARTNER
+  NOT_COMING
+}
+
+enum AdminAccessType {
+  HUSBAND_GUESTS
+  WIFE_GUESTS
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  adminAccess  AdminAccess[]
+}
+
+model AdminAccess {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessType AdminAccessType
+  createdAt  DateTime        @default(now())
+
+  @@unique([userId, accessType])
+}
+
+model Guest {
+  id         String     @id @default(cuid())
+  name       String
+  attendance Attendance
+  source     GuestSource
+  createdAt  DateTime   @default(now())
+}

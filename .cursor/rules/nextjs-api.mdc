@@ -1,0 +1,34 @@
+---
+description: API Route Handlers — validation, Prisma, consistent responses
+globs: app/api/**/*.ts
+alwaysApply: false
+---
+
+# API Routes
+
+- This rule builds on `core-typescript-quality.mdc` and focuses on API route handlers:
+  validation, typing, and consistent responses.
+
+- **Validate input**: Parse and validate request body (e.g. with Zod) before using it. Return `400` with a clear JSON error message for invalid input.
+- **Type input and output**: When adding or changing endpoints, ensure both request and response shapes
+  are typed (ideally inferred from Zod schemas) so callers and handlers share the same contract.
+- **Use Prisma in Route Handlers**: Instantiate Prisma via a shared singleton (e.g. `lib/prisma.ts`), not a new client per request. Keep handlers thin: validate → call service/repo → return response.
+- **Consistent JSON and status codes**: Use `NextResponse.json(body, { status })`. Return `201` for successful creation, `400` for validation errors, `401`/`403` for auth errors, `500` for server errors. Always return a JSON body for API routes (e.g. `{ success: true }` or `{ error: "message" }`).
+
+```ts
+// BAD: no validation, unclear status
+const body = await request.json();
+await prisma.guest.create({ data: body });
+return NextResponse.json({ ok: true });
+
+// GOOD: validate, explicit status, typed body
+const parsed = guestSchema.safeParse(await request.json());
+if (!parsed.success) {
+  return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+}
+await prisma.guest.create({ data: parsed.data });
+return NextResponse.json({ success: true }, { status: 201 });
+```
+
+- After changing several handlers or shared API types, the agent should highlight that API surface
+  has changed and recommend running `npm run lint` and `npm test` in line with `core-typescript-quality.mdc`.

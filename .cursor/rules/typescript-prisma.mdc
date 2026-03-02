@@ -1,0 +1,28 @@
+---
+description: TypeScript and Prisma — strict types, singleton client, typed payloads
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# TypeScript and Prisma
+
+This rule complements `core-typescript-quality.mdc` and focuses on safe, efficient database access with Prisma.
+
+- Use **strict TypeScript** for everything touching Prisma: no `any` for request/response or Prisma payloads.
+  Type API response bodies and form payloads (e.g. with Zod‑inferred types or explicit interfaces).
+- **PrismaClient singleton**: export a single `PrismaClient` instance from a module (e.g. `lib/prisma.ts`)
+  and reuse it across the app to avoid exhausting DB connections in serverless environments.
+
+```ts
+// GOOD: lib/prisma.ts
+import { PrismaClient } from "@prisma/client";
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```
+
+- Type API responses explicitly, e.g.
+  `type GuestResponse = { id: string; name: string; attendance: string; createdAt: string }`
+  so handlers and clients stay type‑safe and aligned.
+- Use Prisma‑generated types (`User`, `Guest`, etc.) for the DB layer, and define separate DTOs or Zod schemas
+  for API requests/responses when you need to hide fields or transform shapes.

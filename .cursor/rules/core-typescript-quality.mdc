@@ -1,0 +1,39 @@
+---
+description: Core TypeScript quality standards — lint, tests, safe types
+globs: "**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Core TypeScript Quality
+
+This is the base quality rule for all TypeScript code in the project.
+Topical rules (`typescript-prisma.mdc`, `nextjs-api.mdc`, `nextjs-app-router.mdc`, `nextjs-performance.mdc`)
+extend this one and focus on their specific areas.
+
+## Linting and tests
+
+- **Run lint checks on changes**: after substantial edits in TS/TSX files, the agent should by default use `ReadLints`
+  for the touched files and fix obvious issues.
+- **Recommend running tests**: if multiple files are changed, or common utilities, domain models,
+  API handlers, or critical UI are touched, the agent should explicitly suggest running:
+  - `npm run lint`
+  - `npm test`
+  and, when helpful, output ready-to-copy terminal commands.
+- **Before finishing a larger task**, the agent should state whether lint and tests have been run
+  and recommend running them if that has not happened yet.
+
+## Commits and change size
+
+- Prefer **small, focused commits**: one concern (feature/refactor/fix) per commit.
+- If changes affect many files or architecturally important areas, the agent should:
+  - call this out explicitly in the summary;
+  - recommend an extra run of `npm run lint` and `npm test` before pushing.
+
+## TypeScript style
+
+- Avoid `any` unless absolutely necessary, especially on module, API, and database boundaries.
+- Exported functions, components, and handlers should have **explicit input and return types**,
+  ideally based on shared types/schemas (for example, Zod).
+- Reuse existing domain types, DTOs, and schemas instead of duplicating similar structures.
+- For new types and contracts, first agree on the data shape (type/schema),
+  then implement logic around that contract.
